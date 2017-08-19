@@ -20,7 +20,7 @@ Return value will usually be a list of datarows.
  $da=New-Object system.Data.SqlClient.SqlDataAdapter($SQLcmd)
  $da.fill($ds) | Out-Null
  
- return $ds
+ return $sqlcmd
 
 }
 
@@ -39,29 +39,51 @@ if ($SQLConn.State -ne [Data.ConnectionState]::Open) {
 $spDatas = Import-Csv $cvsFilePath
 
 foreach($spData in $spDatas) {
-	$Title1 = $spData.'Title'
+	$removeTitle = $spData.'Title'
 	
-	If ($Title1) {
+	If ($removeTitle) {
 		$deleteQuery = "delete from $tableName where [Title]=@Title"
 
-		Write-Host -Fore Yellow "Remove the legacy row which title is: $Title1"
+		Write-Host -Fore Yellow "Remove the legacy row which title is: $removeTitle"
 		exec-query $deleteQuery -parameter @{'Title'= $spData.'Title'} -sqlconn $sqlconn	
 	} else {
-		Write-Host -Fore white "This row didn't have value for title"
+		Write-Host -Fore blue "This row didn't have value for title"
 	}
 
 }
 
-Import-Csv $cvsFilePath | % {
-	
-	$title1 = $_.'Title'
-	write-host -Fore Green "Update the row for title: $title1"
 
-	$parameter=@{}
-	$parameter+=@{'request' = $($_.'Request Stage')}
-	$parameter+=@{'title' = $($_.'Title')}
+$spMember = $spDatas |Get-member
+$spMemberName = $spMember.name
+$spDatas | % {
 	
-	$insertQuery = "INSERT INTO $tableName ([Request Stage],[Title]) VALUES (@request,@title)"
+	$updateTitle = $_.'Title'
+	write-host -Fore Green "Update the row for title: $updateTitle"
+
+	$columns = Import-Csv "e:\columnlist.csv"
+	$parameter=@{}
+	$queryColumnname = "("
+	$queryColumncode = "("
+	foreach($column in $columns) {
+		$columnName = $column.'column name'
+		$columncode =$column.'column code'
+
+		#checking if column name is matched in 2 CVS
+		if ($spMemberName.Contains($columnName)){
+			$parameter+=@{$columncode = $($_.$columnName)}
+		} else {
+		    write-host -Fore Red "Column table didn't match all the field"
+			Exit
+		}					
+		$queryColumnname += "[" + $columnName +"]"+","
+		$queryColumncode += "@" + $columncode +","
+	}
+	$queryColumnname = $queryColumnname.Trim(",")
+	$queryColumnname = $queryColumnname + ")"
+	$queryColumncode = $queryColumncode.Trim(",")
+	$queryColumncode = $queryColumncode + ")"
+	
+	$insertQuery = "INSERT INTO $tableName $queryColumnname VALUES $queryColumncode"
 	exec-query $insertQuery -parameter $parameter -sqlconn $sqlconn	
 	
  }

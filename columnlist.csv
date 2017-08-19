@@ -1,0 +1,45 @@
+﻿Column name,column code
+Request Stage,requeststage
+Title,title
+Created By,CreatedBy
+Created,Created
+Request Type,RequestType
+Purchase Order Total,PurchaseOrderTotal
+Expense Owner or EXT Sponsor,ExpenseOwnerorEXTSponsor
+Org,Org
+PO Adjust,POAdjust
+Add Resource Title,AddResourceTitle
+Resource 1 PA,Resource1PA
+Resource 2 PA,Resource2PA
+Resource 3 PA,Resource3PA
+Resource 4 PA,Resource4PA
+Resource 5 PA,Resource5PA
+Resource 1 RC,Resource1RC
+Resource 2 RC,Resource2RC
+Resource 3 RC,Resource3RC
+Resource 4 RC,Resource4RC
+Resource 5 RC,Resource5RC
+group1,group1
+PO Amt Original,POAmtOriginal
+PO Amt Extended,POAmtExtended
+field1,field1
+Extended PO Number,ExtendedPONumber
+Requests List Linked ID,RequestsListLinkedID
+Supplier Number,SupplierNumber
+Milestone 1 IO,Milestone1IO
+Milestone 2 IO,Milestone2IO
+Milestone 3 IO,Milestone3IO
+Milestone 4 IO,Milestone4IO
+Milestone 5 IO,Milestone5IO
+Milestone 6 IO,Milestone6IO
+ExtPO Org,ExtPOOrg
+EXT Bulk Submit,EXTBulkSubmit
+Expedite,Expedite
+ExpediteR,ExpediteR
+Threshold Approved,ThresholdApproved
+MyDash - Request Process,MyDashRequestProcess
+MyDash - Get Org,MyDashGetOrg
+MyDash - Send to CRM,MyDashSendtoCRM
+PO NUMBER,PONUMBER
+Item Type,ItemType
+Path,Path
