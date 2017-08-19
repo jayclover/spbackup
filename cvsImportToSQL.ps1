@@ -7,7 +7,6 @@ $ErrorActionPreference = "Stop"
 
 $scriptRootPath = $MyInvocation.MyCommand.Path
 $configRootDir = Split-Path $scriptRootPath | Split-Path -Parent
-write-host "it is $configRootDir"
 
 
 #Parameterized query
@@ -120,6 +119,7 @@ $spDatas | % {
 #Close
 $SQLConn.Close()
 
+#time for ending scrpit
 $end = Get-Date
 Write-Host -ForegroundColor Green ('Total Runtime: ' + ($end - $start).TotalSeconds)
 
