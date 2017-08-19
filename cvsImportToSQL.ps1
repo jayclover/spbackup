@@ -1,6 +1,16 @@
-﻿Param([string]$SQLServer = $(throw "missing SQLServer as a first argument!"), [string]$SQLDBName = $(throw "missing SQLDBName as a first argument!"), [string]$tableName = $(throw "missing cvsFile as a first argument!"), [string]$cvsFilePath = $(throw "missing cvsFile as a first argument!"))
+﻿Param([string]$SQLServer = $(throw "missing SQLServer as a first argument!"), [string]$SQLDBName = $(throw "missing SQLDBName as a first argument!"), [string]$tableName = $(throw "missing cvsFile as a first argument!"))
+
+#time for starting scrpit
+$start = Get-Date
+
+$ErrorActionPreference = "Stop"
+
+$scriptRootPath = $MyInvocation.MyCommand.Path
+$configRootDir = Split-Path $scriptRootPath | Split-Path -Parent
+write-host "it is $configRootDir"
 
 
+#Parameterized query
 function exec-query( $query,$parameters=@{},$SQLConn,$timeout=30,[switch]$help){
  if ($help){
  $msg = @"
@@ -24,6 +34,19 @@ Return value will usually be a list of datarows.
 
 }
 
+#call excel and query service to generate csv with all sharepoint data
+$xl = New-Object -C Excel.Application -vb:$false
+$xl.DisplayAlerts = $False
+$queryFilePath = $configRootDir + '\spbackup\query.iqy'
+$iqy = $xl.Workbooks.Open($queryFilePath)
+$cvsFilePath = $configRootDir + '\spbackup\listDataCSV.csv'
+$iqy.SaveAs($cvsFilePath, 6)
+
+#Close the excel
+$xl.quit()
+$confirm = $false
+Get-Process Excel | kill -Confirm:$confirm
+
 
 #Create the SQL Connection Object
 Write-Verbose "Creating SQL Connection"
@@ -36,8 +59,11 @@ if ($SQLConn.State -ne [Data.ConnectionState]::Open) {
     Exit
 }
 
-$spDatas = Import-Csv $cvsFilePath
 
+#read the csv file, the encoding Default is a must here to avoid encoding issue
+$spDatas = import-csv $cvsFilePath -Encoding Default
+
+#detet the row from SQL which existed in csv for updating
 foreach($spData in $spDatas) {
 	$removeTitle = $spData.'Title'
 	
@@ -52,15 +78,18 @@ foreach($spData in $spDatas) {
 
 }
 
-
+# Pick up all column name from the csv with sharepoint data
 $spMember = $spDatas |Get-member
 $spMemberName = $spMember.name
+
+# write all data from csv with sharepoint data into SQL
 $spDatas | % {
 	
 	$updateTitle = $_.'Title'
 	write-host -Fore Green "Update the row for title: $updateTitle"
-
-	$columns = Import-Csv "e:\columnlist.csv"
+	
+	$columnListPath = $configRootDir + '\spbackup\columnlist.csv'
+	$columns = Import-Csv $columnListPath
 	$parameter=@{}
 	$queryColumnname = "("
 	$queryColumncode = "("
@@ -68,7 +97,7 @@ $spDatas | % {
 		$columnName = $column.'column name'
 		$columncode =$column.'column code'
 
-		#checking if column name is matched in 2 CVS
+		#checking if column name is matched in the csv with sharepoint data and the csv with column dictionary
 		if ($spMemberName.Contains($columnName)){
 			$parameter+=@{$columncode = $($_.$columnName)}
 		} else {
@@ -91,3 +120,8 @@ $spDatas | % {
 #Close
 $SQLConn.Close()
 
+$end = Get-Date
+Write-Host -ForegroundColor Green ('Total Runtime: ' + ($end - $start).TotalSeconds)
+
+Write-Host "Done."
+exit
